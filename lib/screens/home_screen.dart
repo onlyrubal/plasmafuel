@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:plasma_fuel/widgets/donor_submission_card.dart';
+import '../providers/donor_info.dart';
+import '../widgets/donor_submission_card.dart';
 import '../providers/covid_tracker.dart';
 import 'package:provider/provider.dart';
 import '../widgets/info_card.dart';
@@ -98,12 +99,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _checkDidChangeDependenciesRan = true;
   bool _isLoadingSpinner = false;
+
   @override
   void didChangeDependencies() {
     if (_checkDidChangeDependenciesRan) {
       setState(() {
         _isLoadingSpinner = true;
       });
+
       Provider.of<CovidTrackers>(context).fetchCovidStatistics().then((_) {
         setState(() {
           _isLoadingSpinner = false;

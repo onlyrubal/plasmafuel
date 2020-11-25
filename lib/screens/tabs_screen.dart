@@ -18,6 +18,18 @@ class _TabsScreenState extends State<TabsScreen> {
   List<Object> _pages;
 
   int _selectedPageIndex = 0;
+  bool _checkDidChangeDependenciesRan = true;
+
+  // Fetching the Donors from the Database
+  @override
+  void didChangeDependencies() {
+    if (_checkDidChangeDependenciesRan) {
+      Provider.of<Donors>(context).fetchDonors();
+      _checkDidChangeDependenciesRan = false;
+    }
+
+    super.didChangeDependencies();
+  }
 
   @override
   void initState() {

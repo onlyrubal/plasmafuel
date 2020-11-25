@@ -74,9 +74,6 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           itemCount: donors.length,
         ),
       ),
-      // body: Center(
-      //   child: Text('Imp Marked'),
-      // ),
     );
   }
 }
