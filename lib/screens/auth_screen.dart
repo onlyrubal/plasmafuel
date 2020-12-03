@@ -44,6 +44,11 @@ class _AuthScreenState extends State<AuthScreen> {
 
   final GlobalKey<FormState> _signUpFormKey = GlobalKey();
   final GlobalKey<FormState> _loginFormKey = GlobalKey();
+
+  final _loginPasswordFocusNode = FocusNode();
+  final _signUpPasswordFocusNode = FocusNode();
+  final _signUpConfirmPasswordFocusNode = FocusNode();
+
   AuthMode _authMode = AuthMode.Login;
   Map<String, String> _authData = {
     'email': '',
@@ -196,7 +201,7 @@ class _AuthScreenState extends State<AuthScreen> {
         break;
       // Login Page
       case 1:
-        _backgroundColor = Color(0xFFBD34C59);
+        _backgroundColor = Theme.of(context).primaryColor;
         _headingColor = Colors.white;
         _loginXOffset = 0;
         _loginWidth = windowWidth;
@@ -212,7 +217,7 @@ class _AuthScreenState extends State<AuthScreen> {
         _loginHeight = _keyboardVisible ? windowHeight : windowHeight - 270;
         break;
       case 2:
-        _backgroundColor = Color(0xFFBD34C59);
+        _backgroundColor = Theme.of(context).primaryColor;
         _headingColor = Colors.white;
         _loginYOffset = _keyboardVisible ? 30 : 250;
         _loginXOffset = 20;
@@ -261,7 +266,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           curve: Curves.fastLinearToSlowEaseIn,
                           margin: EdgeInsets.only(top: _headingTopMargin),
                           child: Text(
-                            'Learn Free',
+                            'Help COVID 19 Patients',
                             style: TextStyle(
                               fontSize: 28,
                               color: _headingColor,
@@ -275,7 +280,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(horizontal: 52),
                           child: Text(
-                            'We make shopping easy. Browse this app to look for awesome products.',
+                            'Fully Recovered From COVID 19?',
                             style: TextStyle(
                               fontSize: 20,
                               color: _headingColor,
@@ -289,7 +294,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 32),
                     child: Center(
-                      child: Image.asset('assets/images/splash_bg.png'),
+                      child: Image.asset('assets/images/plasmabag.png'),
                     ),
                   ),
                   Container(
@@ -306,7 +311,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           },
                         );
                       },
-                      child: PrimaryButton(btnText: 'Getting Started'),
+                      child: PrimaryButton(btnText: 'Sign Up To Give Plasma'),
                     ),
                   )
                 ],
@@ -350,8 +355,16 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                       TextFormField(
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyText2
+                            .copyWith(fontSize: 20),
                         decoration: textDecoration('Enter Email', Icons.email),
                         keyboardType: TextInputType.emailAddress,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context)
+                              .requestFocus(_loginPasswordFocusNode);
+                        },
                         validator: (value) {
                           if (value.isEmpty || !value.contains('@')) {
                             return 'Invalid email!';
@@ -363,9 +376,14 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       SizedBox(height: 40),
                       TextFormField(
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyText2
+                            .copyWith(fontSize: 20),
                         decoration:
                             textDecoration('Enter Password', Icons.vpn_key),
                         obscureText: true,
+                        focusNode: _loginPasswordFocusNode,
                         validator: (value) {
                           if (value.isEmpty || value.length < 5) {
                             return 'Password is too short!';
@@ -443,7 +461,15 @@ class _AuthScreenState extends State<AuthScreen> {
                       TextFormField(
                         decoration:
                             textDecoration('Enter New Email', Icons.email),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyText2
+                            .copyWith(fontSize: 20),
                         keyboardType: TextInputType.emailAddress,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context)
+                              .requestFocus(_signUpPasswordFocusNode);
+                        },
                         validator: (value) {
                           if (value.isEmpty || !value.contains('@')) {
                             return 'Invalid email!';
@@ -456,8 +482,17 @@ class _AuthScreenState extends State<AuthScreen> {
                       SizedBox(height: 40),
                       TextFormField(
                         decoration: textDecoration('Password', Icons.vpn_key),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyText2
+                            .copyWith(fontSize: 20),
                         obscureText: true,
+                        focusNode: _signUpPasswordFocusNode,
                         controller: _passwordController,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context)
+                              .requestFocus(_signUpConfirmPasswordFocusNode);
+                        },
                         validator: (value) {
                           if (value.isEmpty || value.length < 5) {
                             return 'Password is too short!';
@@ -471,6 +506,11 @@ class _AuthScreenState extends State<AuthScreen> {
                       TextFormField(
                         decoration:
                             textDecoration('Confirm Password', Icons.vpn_key),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyText2
+                            .copyWith(fontSize: 20),
+                        focusNode: _signUpConfirmPasswordFocusNode,
                         obscureText: true,
                         validator: _authMode == AuthMode.Signup
                             ? (value) {

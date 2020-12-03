@@ -31,13 +31,16 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             padding: EdgeInsets.only(bottom: 10),
             child: Text(
               'Saved',
-              style: Theme.of(context).textTheme.bodyText1,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyText2
+                  .copyWith(fontWeight: FontWeight.bold),
             ),
           ),
-          backgroundColor: Color(0xff4C4B4B),
+          backgroundColor: Colors.transparent,
           elevation: 0,
           iconTheme: new IconThemeData(
-            color: Colors.white,
+            color: Colors.black,
           ),
           actions: [
             PopupMenuButton(
@@ -67,11 +70,24 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         ),
       ),
       body: SafeArea(
-        child: ListView.builder(
-          itemBuilder: (ctx, index) {
-            return DonorItem(donors[index]);
-          },
-          itemCount: donors.length,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              SizedBox(height: 20),
+              Expanded(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemBuilder: (buildContext, index) =>
+                      ChangeNotifierProvider.value(
+                    value: donors[index],
+                    child: DonorItem(),
+                  ),
+                  itemCount: donors.length,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

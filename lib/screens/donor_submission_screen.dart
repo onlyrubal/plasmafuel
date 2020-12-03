@@ -9,6 +9,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../providers/donor_info.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/secondary_button.dart';
+import '../providers/auth.dart';
 
 class DonorSubmissionScreen extends StatefulWidget {
   static const routeName = '/donor-submission-screen';
@@ -30,7 +31,16 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
 
   List<String> _genderList = ['Male', 'Female', 'Prefer Not to Say'];
   List<String> _symptomResponseList = ['Yes', 'No'];
-
+  List<String> _bloodGroupList = [
+    'A+',
+    'B+',
+    'O+',
+    'AB+',
+    'A-',
+    'O-',
+    'B-',
+    'AB-',
+  ];
   DateTime _selectedDate;
 
   var _editedDonor = Donor(
@@ -42,9 +52,11 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
     donorContactNumber: '',
     approveStatus: 'Pending',
     covidSymptoms: false,
+    bloodGroup: '',
     recordProof: null,
     covidNegativeTestDate: '',
     isAnonymous: false,
+    userId: '',
   );
 
   var _initDefaultDonorValues = {
@@ -79,10 +91,12 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
             donorContactNumber: _editedDonor.donorContactNumber,
             approveStatus: _editedDonor.approveStatus,
             covidSymptoms: _editedDonor.covidSymptoms,
+            bloodGroup: _editedDonor.bloodGroup,
             recordProof: _editedDonor.recordProof,
             covidNegativeTestDate:
                 DateFormat.yMMMd().format(_selectedDate).toString(),
             isAnonymous: _editedDonor.isAnonymous,
+            userId: _editedDonor.userId,
           );
         });
       },
@@ -127,7 +141,33 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
       _isLoading = false;
     });
 
-    await Provider.of<Donors>(context, listen: false).addNewDonor(_editedDonor);
+    try {
+      await Provider.of<Donors>(context, listen: false)
+          .addNewDonor(_editedDonor);
+    } catch (error) {
+      return showDialog<Null>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('An error occured !'),
+          content: Text('There is something wrong. Please return later.'),
+          actions: [
+            FlatButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+              },
+              child: Text('Close'),
+            )
+          ],
+        ),
+      );
+    } finally {
+      setState(
+        () {
+          _isLoading = false;
+        },
+      );
+      Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -168,8 +208,11 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
       var file = File(image.path);
       if (image != null) {
         //Upload to Firebase
-        var snapshot =
-            await _storage.ref().child('uploads/imageName').putFile(file);
+        var snapshot = await _storage
+            .ref()
+            .child(
+                'uploads/${Provider.of<Auth>(context, listen: false).userId}')
+            .putFile(file);
 
         var downloadUrl = await snapshot.ref.getDownloadURL();
 
@@ -185,9 +228,11 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
               donorContactNumber: _editedDonor.donorContactNumber,
               approveStatus: _editedDonor.approveStatus,
               covidSymptoms: _editedDonor.covidSymptoms,
+              bloodGroup: _editedDonor.bloodGroup,
               recordProof: imageUrl,
               covidNegativeTestDate: _editedDonor.covidNegativeTestDate,
               isAnonymous: _editedDonor.isAnonymous,
+              userId: _editedDonor.userId,
             );
           },
         );
@@ -233,6 +278,31 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
                           shrinkWrap: true,
                           physics: NeverScrollableScrollPhysics(),
                           children: [
+                            SwitchListTile(
+                              title: Text('Do you want to stay anonymous?'),
+                              value: _editedDonor.isAnonymous,
+                              onChanged: (newValue) {
+                                setState(() {
+                                  _editedDonor = Donor(
+                                    donorId: _editedDonor.donorId,
+                                    donorName: _editedDonor.donorName,
+                                    donorAddress: _editedDonor.donorAddress,
+                                    donorGender: _editedDonor.donorGender,
+                                    donorAge: _editedDonor.donorAge,
+                                    donorContactNumber:
+                                        _editedDonor.donorContactNumber,
+                                    approveStatus: _editedDonor.approveStatus,
+                                    covidSymptoms: _editedDonor.covidSymptoms,
+                                    bloodGroup: _editedDonor.bloodGroup,
+                                    recordProof: _editedDonor.recordProof,
+                                    covidNegativeTestDate:
+                                        _editedDonor.covidNegativeTestDate,
+                                    isAnonymous: newValue,
+                                    userId: _editedDonor.userId,
+                                  );
+                                });
+                              },
+                            ),
                             Padding(
                               padding: EdgeInsets.only(top: 5),
                               child: TextFormField(
@@ -259,10 +329,12 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
                                         _editedDonor.donorContactNumber,
                                     approveStatus: _editedDonor.approveStatus,
                                     covidSymptoms: _editedDonor.covidSymptoms,
+                                    bloodGroup: _editedDonor.bloodGroup,
                                     recordProof: _editedDonor.recordProof,
                                     covidNegativeTestDate:
                                         _editedDonor.covidNegativeTestDate,
                                     isAnonymous: _editedDonor.isAnonymous,
+                                    userId: _editedDonor.userId,
                                   );
                                 },
                                 validator: (value) {
@@ -301,10 +373,12 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
                                         _editedDonor.donorContactNumber,
                                     approveStatus: _editedDonor.approveStatus,
                                     covidSymptoms: _editedDonor.covidSymptoms,
+                                    bloodGroup: _editedDonor.bloodGroup,
                                     recordProof: _editedDonor.recordProof,
                                     covidNegativeTestDate:
                                         _editedDonor.covidNegativeTestDate,
                                     isAnonymous: _editedDonor.isAnonymous,
+                                    userId: _editedDonor.userId,
                                   );
                                 },
                                 validator: (value) {
@@ -347,10 +421,12 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
                                         _editedDonor.donorContactNumber,
                                     approveStatus: _editedDonor.approveStatus,
                                     covidSymptoms: _editedDonor.covidSymptoms,
+                                    bloodGroup: _editedDonor.bloodGroup,
                                     recordProof: _editedDonor.recordProof,
                                     covidNegativeTestDate:
                                         _editedDonor.covidNegativeTestDate,
                                     isAnonymous: _editedDonor.isAnonymous,
+                                    userId: _editedDonor.userId,
                                   );
                                 },
                                 onChanged: (_) {},
@@ -384,10 +460,12 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
                                         _editedDonor.donorContactNumber,
                                     approveStatus: _editedDonor.approveStatus,
                                     covidSymptoms: _editedDonor.covidSymptoms,
+                                    bloodGroup: _editedDonor.bloodGroup,
                                     recordProof: _editedDonor.recordProof,
                                     covidNegativeTestDate:
                                         _editedDonor.covidNegativeTestDate,
                                     isAnonymous: _editedDonor.isAnonymous,
+                                    userId: _editedDonor.userId,
                                   );
                                 },
                                 validator: (value) {
@@ -432,10 +510,12 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
                                     donorContactNumber: newValue,
                                     approveStatus: _editedDonor.approveStatus,
                                     covidSymptoms: _editedDonor.covidSymptoms,
+                                    bloodGroup: _editedDonor.bloodGroup,
                                     recordProof: _editedDonor.recordProof,
                                     covidNegativeTestDate:
                                         _editedDonor.covidNegativeTestDate,
                                     isAnonymous: _editedDonor.isAnonymous,
+                                    userId: _editedDonor.userId,
                                   );
                                 },
                               ),
@@ -473,10 +553,54 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
                                     approveStatus: _editedDonor.approveStatus,
                                     covidSymptoms:
                                         newValue == 'Yes' ? true : false,
+                                    bloodGroup: _editedDonor.bloodGroup,
                                     recordProof: _editedDonor.recordProof,
                                     covidNegativeTestDate:
                                         _editedDonor.covidNegativeTestDate,
                                     isAnonymous: _editedDonor.isAnonymous,
+                                    userId: _editedDonor.userId,
+                                  );
+                                },
+                                onChanged: (_) {},
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 5),
+                              child: DropdownButtonFormField(
+                                decoration:
+                                    textDecoration('Choose your blood group'),
+                                items: _bloodGroupList.map(
+                                  (bloodGroup) {
+                                    return DropdownMenuItem(
+                                      child: Text(
+                                        bloodGroup,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2
+                                            .copyWith(fontSize: 18),
+                                      ),
+                                      value: bloodGroup,
+                                    );
+                                  },
+                                ).toList(),
+                                onSaved: (newValue) {
+                                  _editedDonor = Donor(
+                                    donorId: _editedDonor.donorId,
+                                    donorName: _editedDonor.donorName,
+                                    donorAddress: _editedDonor.donorAddress,
+                                    donorGender: _editedDonor.donorGender,
+                                    donorAge: _editedDonor.donorAge,
+                                    donorContactNumber:
+                                        _editedDonor.donorContactNumber,
+                                    approveStatus: _editedDonor.approveStatus,
+                                    covidSymptoms: _editedDonor.covidSymptoms,
+                                    bloodGroup: newValue,
+                                    recordProof: _editedDonor.recordProof,
+                                    covidNegativeTestDate:
+                                        _editedDonor.covidNegativeTestDate,
+                                    isAnonymous: _editedDonor.isAnonymous,
+                                    userId: _editedDonor.userId,
                                   );
                                 },
                                 onChanged: (_) {},
@@ -524,7 +648,8 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
                               ),
                             ),
                             SizedBox(height: 20),
-                            Text('Attach additional supporting documents'),
+                            Text(
+                                'Attach additional supporting documents\n (Last covid negative test reports etc.)'),
                             SizedBox(height: 10),
                             Container(
                               width: double.infinity,
@@ -575,7 +700,28 @@ class _DonorSubmissionScreenState extends State<DonorSubmissionScreen> {
                                   },
                                 ),
                                 InkWell(
-                                  onTap: _saveProductDetailsForm,
+                                  onTap: () {
+                                    _editedDonor = Donor(
+                                      donorId: _editedDonor.donorId,
+                                      donorName: _editedDonor.donorName,
+                                      donorAddress: _editedDonor.donorAddress,
+                                      donorGender: _editedDonor.donorGender,
+                                      donorAge: _editedDonor.donorAge,
+                                      donorContactNumber:
+                                          _editedDonor.donorContactNumber,
+                                      approveStatus: _editedDonor.approveStatus,
+                                      covidSymptoms: _editedDonor.covidSymptoms,
+                                      bloodGroup: _editedDonor.bloodGroup,
+                                      recordProof: _editedDonor.recordProof,
+                                      covidNegativeTestDate:
+                                          _editedDonor.covidNegativeTestDate,
+                                      isAnonymous: _editedDonor.isAnonymous,
+                                      userId: Provider.of<Auth>(context,
+                                              listen: false)
+                                          .userId,
+                                    );
+                                    _saveProductDetailsForm();
+                                  },
                                   borderRadius: BorderRadius.circular(10),
                                   child: Container(
                                     width: 180,

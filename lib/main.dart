@@ -11,6 +11,7 @@ import './providers/donor_info.dart';
 import './providers/covid_tracker.dart';
 import './screens/auth_screen.dart';
 import './providers/auth.dart';
+import 'notifiers.dart';
 
 void main() {
   runApp(MyApp());
@@ -30,6 +31,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (ctx) => Auth(),
+        ),
+        ChangeNotifierProvider<MultipleNotifier>(
+          create: (_) => MultipleNotifier([]),
         )
       ],
       child: Consumer<Auth>(

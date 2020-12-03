@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:io';
 import '../models/http_exception.dart';
 
 class Donor with ChangeNotifier {
@@ -14,11 +13,12 @@ class Donor with ChangeNotifier {
   final String donorContactNumber;
   final String approveStatus;
   final bool covidSymptoms;
+  final String bloodGroup;
   final recordProof;
   final String covidNegativeTestDate;
   final bool isAnonymous;
   final bool isAvailable;
-  String userId;
+  final String userId;
   bool isBookmarked;
 
   Donor({
@@ -30,83 +30,53 @@ class Donor with ChangeNotifier {
     @required this.donorContactNumber,
     @required this.approveStatus,
     @required this.covidSymptoms,
+    @required this.bloodGroup,
     @required this.recordProof,
     @required this.covidNegativeTestDate,
     @required this.isAnonymous,
-    this.userId = '',
+    @required this.userId,
     this.isBookmarked = false,
     this.isAvailable = true,
   });
+
+  Future<void> toggleBookmarkedStatus(String userId, String token) async {
+    // Optimistic Updating
+    final oldIsBookmarkedStatus = isBookmarked;
+
+    isBookmarked = !isBookmarked;
+    notifyListeners();
+
+    final donorURL =
+        'https://plasma-fuel.firebaseio.com/donorsBookmarked/$userId/$donorId.json?auth=$token';
+
+    final response = await http.put(
+      donorURL,
+      body: json.encode(
+        isBookmarked,
+      ),
+    );
+
+    if (response.statusCode >= 400) {
+      isBookmarked = oldIsBookmarkedStatus;
+      notifyListeners();
+      throw HttpException(errorMessage: response.body);
+    }
+  }
 }
 
 class Donors with ChangeNotifier {
-  List<Donor> _items = [
-    //TEST DATA
+  List<Donor> _items = [];
 
-    // Donor(
-    //   donorId: '',
-    //   donorName: 'Manjinder Singh',
-    //   donorAddress: 'Amritsar',
-    //   donorGender: 'Male',
-    //   donorAge: 23,
-    //   donorContactNumber: '+1-5195737187',
-    //   approveStatus: 'Approved',
-    //   covidSymptoms: false,
-    //   recordProof: '',
-    //   covidNegativeTestDate: '09-Dec-2020',
-    //   isAnonymous: true,
-    //   isBookmarked: true,
-    // ),
-    // Donor(
-    //   donorId: '',
-    //   donorName: 'Jasmeet Singh',
-    //   donorAddress: 'Sangrur',
-    //   donorGender: 'Male',
-    //   donorAge: 24,
-    //   donorContactNumber: '+1-5195737187',
-    //   approveStatus: 'Pending',
-    //   covidSymptoms: false,
-    //   recordProof: '',
-    //   covidNegativeTestDate: '09-Dec-2020',
-    //   isAnonymous: true,
-    //   isBookmarked: false,
-    // ),
-    // Donor(
-    //   donorId: '',
-    //   donorName: 'Amrinder Singh',
-    //   donorAddress: 'Chandigarh',
-    //   donorGender: 'Female',
-    //   donorAge: 26,
-    //   donorContactNumber: '+1-5195737187',
-    //   approveStatus: 'Rejected',
-    //   covidSymptoms: false,
-    //   recordProof: '',
-    //   covidNegativeTestDate: '09-Dec-2020',
-    //   isAnonymous: true,
-    //   isBookmarked: true,
-    // ),
-  ];
+  List<String> _cities = [];
+
+  bool _isCityFilterSelected = false;
+
+  String _filteredCity = null;
 
   Future<void> addNewDonor(Donor donor) async {
     final donorURL = 'https://plasma-fuel.firebaseio.com/donors.json';
 
     try {
-      //POST request to add the donor
-
-      //   final String donorId;
-      // final String donorName;
-      // final String donorAddress;
-      // final String donorGender;
-      // final int donorAge;
-      // final String donorContactNumber;
-      // final String approveStatus;
-      // final bool covidSymptoms;
-      // final String recordProof;
-      // final String covidNegativeTestDate;
-      // final bool isAnonymous;
-      // final bool isAvailable;
-      // String userId;
-      // bool isBookmarked;
       final response = await http.post(
         donorURL,
         body: jsonEncode({
@@ -117,6 +87,7 @@ class Donors with ChangeNotifier {
           'donorContactNumber': donor.donorContactNumber,
           'approveStatus': donor.approveStatus,
           'covidSymptoms': donor.covidSymptoms,
+          'bloodGroup': donor.bloodGroup,
           'recordProof': donor.recordProof,
           'covidNegativeTestDate': donor.covidNegativeTestDate,
           'isAnonymous': donor.isAnonymous,
@@ -135,6 +106,7 @@ class Donors with ChangeNotifier {
         donorContactNumber: donor.donorContactNumber,
         approveStatus: donor.approveStatus,
         covidSymptoms: donor.covidSymptoms,
+        bloodGroup: donor.bloodGroup,
         recordProof: donor.recordProof,
         covidNegativeTestDate: donor.covidNegativeTestDate,
         isAnonymous: donor.isAnonymous,
@@ -172,6 +144,7 @@ class Donors with ChangeNotifier {
             donorContactNumber: donorData['donorContactNumber'],
             approveStatus: donorData['approveStatus'],
             covidSymptoms: donorData['covidSymptoms'],
+            bloodGroup: donorData['bloodGroup'],
             recordProof: donorData['recordProof'],
             covidNegativeTestDate: donorData['covidNegativeTestDate'],
             isAnonymous: donorData['isAnonymous'],
@@ -193,11 +166,70 @@ class Donors with ChangeNotifier {
     return _items.where((_donorItem) => _donorItem.isBookmarked).toList();
   }
 
+  void fetchCities() {
+    _items.forEach(
+      (_donorItem) {
+        _cities.add(_donorItem.donorAddress);
+      },
+    );
+  }
+
+  List<String> get cities {
+    return [..._cities];
+  }
+
   int get bookmarkedDonorCount {
     return showBookmarkedDonors().length;
   }
 
+  bool get isCityFilterSelected {
+    return _isCityFilterSelected;
+  }
+
+  void applyCityFilter(String city) {
+    _isCityFilterSelected = (city == null) ? false : true;
+    _filteredCity = city;
+    notifyListeners();
+  }
+
+  void clearCityFilter() {
+    _isCityFilterSelected = false;
+    _filteredCity = null;
+
+    notifyListeners();
+  }
+
   List<Donor> get items {
     return [..._items];
+  }
+
+  String mySubmissionsCount(String authenticatedUser) {
+    return _items
+        .where((_donorItem) => _donorItem.userId == authenticatedUser)
+        .length
+        .toString();
+  }
+
+  List<Donor> mySubmissions(String authenticatedUser) {
+    return _items
+        .where((_donorItem) => _donorItem.userId == authenticatedUser)
+        .toList();
+  }
+
+  Donor mySingleSubmission(String authenticatedUser) {
+    return _items
+        .firstWhere((_donorItem) => _donorItem.userId == authenticatedUser);
+  }
+
+  List<Donor> filteredItems() {
+    if (_filteredCity == null)
+      return _items
+          .where((_donorItem) => _donorItem.approveStatus == 'Approved')
+          .toList();
+    else
+      return _items
+          .where((_donorItem) => ((_donorItem.donorAddress == _filteredCity) &&
+              (_donorItem.approveStatus == 'Approved')))
+          .toList();
   }
 }

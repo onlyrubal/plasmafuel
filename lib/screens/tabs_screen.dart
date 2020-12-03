@@ -19,12 +19,13 @@ class _TabsScreenState extends State<TabsScreen> {
 
   int _selectedPageIndex = 0;
   bool _checkDidChangeDependenciesRan = true;
-
   // Fetching the Donors from the Database
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies() async {
+    final donorInfoData = Provider.of<Donors>(context);
     if (_checkDidChangeDependenciesRan) {
-      Provider.of<Donors>(context).fetchDonors();
+      await donorInfoData.fetchDonors();
+      donorInfoData.fetchCities();
       _checkDidChangeDependenciesRan = false;
     }
 
@@ -76,7 +77,7 @@ class _TabsScreenState extends State<TabsScreen> {
                 child: ch,
                 value: donors.bookmarkedDonorCount.toString(),
               ),
-              child: Icon(Icons.star_border_outlined),
+              child: Icon(Icons.bookmarks_sharp),
             ),
             label: 'Saved',
             backgroundColor: Theme.of(context).primaryColor,
