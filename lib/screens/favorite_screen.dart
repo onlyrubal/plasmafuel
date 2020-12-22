@@ -42,31 +42,6 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           iconTheme: new IconThemeData(
             color: Colors.black,
           ),
-          actions: [
-            PopupMenuButton(
-              padding: EdgeInsets.only(bottom: 10),
-              icon: Icon(Icons.more_vert),
-              onSelected: (FilterOptions selectedValue) {
-                setState(() {
-                  if (selectedValue == FilterOptions.Saved) {
-                    _showBookmarkedOnly = true;
-                  } else {
-                    _showBookmarkedOnly = false;
-                  }
-                });
-              },
-              itemBuilder: (_) => [
-                PopupMenuItem(
-                  child: Text('Saved'),
-                  value: FilterOptions.Saved,
-                ),
-                PopupMenuItem(
-                  child: Text('All'),
-                  value: FilterOptions.All,
-                ),
-              ],
-            )
-          ],
         ),
       ),
       body: SafeArea(

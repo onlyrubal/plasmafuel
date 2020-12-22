@@ -1,7 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:plasma_fuel/widgets/primary_filter.dart';
-import 'package:plasma_fuel/widgets/primary_outline_filter.dart';
 import 'package:provider/provider.dart';
 import '../providers/donor_info.dart';
 import '../providers/auth.dart';
@@ -14,8 +12,8 @@ class DonorItem extends StatelessWidget {
     final _authenticatedUserId = auth.userId;
     final scaffold = Scaffold.of(context);
 
-    return InkWell(
-      onTap: () {},
+    return Container(
+      height: 250,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Card(
@@ -35,10 +33,40 @@ class DonorItem extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  height: 10,
-                ),
+                if ((_authenticatedUserId == donor.userId))
+                  SizedBox(height: 10),
+                if (!(_authenticatedUserId == donor.userId))
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Consumer<Donor>(
+                        builder: (context, donor, _) => IconButton(
+                          color: Theme.of(context).accentColor,
+                          icon: Icon(donor.isBookmarked
+                              ? Icons.bookmark_sharp
+                              : Icons.bookmark_border_sharp),
+                          onPressed: () async {
+                            try {
+                              await donor.toggleBookmarkedStatus(
+                                  auth.userId, auth.token);
+                            } catch (error) {
+                              print(error);
+                              scaffold.showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    error.toString(),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -115,61 +143,22 @@ class DonorItem extends StatelessWidget {
                                 style: Theme.of(context).textTheme.subtitle2),
                           ],
                         ),
+                        SizedBox(height: 10),
                         Row(
-                          // mainAxisAlignment: MainAxisAlignment.center,
-                          children: [],
-                        )
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.phone, color: Colors.blueAccent),
+                            SizedBox(width: 5),
+                            Text(
+                              '+1 ${donor.donorContactNumber}',
+                              style: Theme.of(context).textTheme.subtitle2,
+                            )
+                          ],
+                        ),
                       ],
                     ),
                   ],
                 ),
-                SizedBox(height: 10),
-                if (!(_authenticatedUserId == donor.userId))
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '+1 ${donor.donorContactNumber}',
-                            style: TextStyle(
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Consumer<Donor>(
-                        builder: (context, donor, _) => IconButton(
-                          color: Theme.of(context).accentColor,
-                          icon: Icon(donor.isBookmarked
-                              ? Icons.bookmark_sharp
-                              : Icons.bookmark_border_sharp),
-                          onPressed: () async {
-                            try {
-                              await donor.toggleBookmarkedStatus(
-                                  auth.userId, auth.token);
-                            } catch (error) {
-                              print(error);
-                              scaffold.showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    error.toString(),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
                 SizedBox(height: 10)
               ],
             ),

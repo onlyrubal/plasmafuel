@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:plasma_fuel/widgets/donor_item.dart';
+import 'package:plasma_fuel/widgets/secondary_button.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth.dart';
 import '../providers/donor_info.dart';
@@ -16,8 +17,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final _authenticatedUserId = Provider.of<Auth>(context).userId;
     final _mySubmissions =
         Provider.of<Donors>(context).mySubmissions(_authenticatedUserId);
-    final _mySingleSubmission =
-        Provider.of<Donors>(context).mySingleSubmission(_authenticatedUserId);
+    bool _checkDidChangeDependenciesRan = true;
+
+    Donor _editedDonor;
+
+    var _initDefaultDonorValues = {
+      'donorName': '',
+      'donorAddress': '',
+      'donorGender': '',
+      'donorAge': '',
+      'donorContactNumber': '',
+      'recordProof': '',
+      'isAnonymous': false,
+    };
+
+    @override
+    void didChangeDependencies() {
+      if (_checkDidChangeDependenciesRan) {
+        final donorId = Provider.of<Donors>(context)
+            .mySubmissionDonorId(_authenticatedUserId);
+        if (donorId != null) {
+          _editedDonor = Provider.of<Donors>(context).findById(donorId);
+        }
+      }
+    }
+
+    bool _mySubmission = true;
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(40.0),
@@ -36,34 +61,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
           iconTheme: new IconThemeData(
             color: Theme.of(context).primaryColor,
           ),
-          actions: [
-            Padding(
-                padding: EdgeInsets.only(right: 30),
-                child: GestureDetector(
-                  onTap: () {
-                    Provider.of<Auth>(context, listen: false).signOut();
-                  },
-                  child: Icon(
-                    Icons.logout,
-                    size: 26.0,
-                  ),
-                )),
-          ],
         ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SwitchListTile(
-            title: Text('Are you available to donate'),
-            value: _mySingleSubmission.isAvailable,
-            onChanged: (newValue) {},
+            title: Text('Available to donate ?'),
+            value: _mySubmission,
+            onChanged: (newValue) {
+              setState(
+                () {
+                  // Filter value is changed here that we initialized earlier.
+                  _mySubmission = newValue;
+                },
+              );
+            },
           ),
           SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              'My Submissions (${Provider.of<Donors>(context).mySubmissionsCount(_authenticatedUserId)})',
+              'My Profile',
               style: Theme.of(context)
                   .textTheme
                   .bodyText2
@@ -79,6 +98,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: DonorItem(),
             ),
             itemCount: _mySubmissions.length,
+          ),
+          SizedBox(height: 20),
+          InkWell(
+            onTap: () {
+              Provider.of<Auth>(context, listen: false).signOut();
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: SecondaryButton(
+                btnText: 'Sign Out',
+              ),
+            ),
           )
         ],
       ),

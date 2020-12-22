@@ -24,7 +24,12 @@ class _TabsScreenState extends State<TabsScreen> {
   void didChangeDependencies() async {
     final donorInfoData = Provider.of<Donors>(context);
     if (_checkDidChangeDependenciesRan) {
-      await donorInfoData.fetchDonors();
+      try {
+        await donorInfoData.fetchDonors();
+      } catch (error) {
+        print(error);
+      }
+
       donorInfoData.fetchCities();
       _checkDidChangeDependenciesRan = false;
     }

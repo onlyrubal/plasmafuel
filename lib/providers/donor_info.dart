@@ -216,9 +216,19 @@ class Donors with ChangeNotifier {
         .toList();
   }
 
+  String mySubmissionDonorId(String authenticatedUser) {
+    return _items
+        .firstWhere((_donorItem) => _donorItem.userId == authenticatedUser)
+        .donorId;
+  }
+
   Donor mySingleSubmission(String authenticatedUser) {
     return _items
         .firstWhere((_donorItem) => _donorItem.userId == authenticatedUser);
+  }
+
+  Donor findById(String donorId) {
+    return _items.firstWhere((donor) => donor.donorId == donorId);
   }
 
   List<Donor> filteredItems() {

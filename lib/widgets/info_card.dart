@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../widgets/line_chart.dart';
@@ -7,13 +8,16 @@ class InfoCard extends StatelessWidget {
   final int effectedNum;
   final Color iconColor;
   final Function press;
-  const InfoCard({
-    Key key,
-    this.title,
-    this.effectedNum,
-    this.iconColor,
-    this.press,
-  }) : super(key: key);
+  final List<FlSpot> weeklyCasesCount;
+
+  const InfoCard(
+      {Key key,
+      this.title,
+      this.effectedNum,
+      this.iconColor,
+      this.press,
+      this.weeklyCasesCount})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -88,9 +92,12 @@ class InfoCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        Expanded(
-                          child: LineReportChart(),
-                        ),
+                        (weeklyCasesCount.isNotEmpty)
+                            ? Expanded(
+                                child: LineReportChart(
+                                    weeklyCasesCount: weeklyCasesCount),
+                              )
+                            : Text(''),
                       ],
                     ),
                   )

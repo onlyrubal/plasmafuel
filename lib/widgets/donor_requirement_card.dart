@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class DonorRequirementCard extends StatelessWidget {
   String imageValue;
   String heading;
+
   DonorRequirementCard({
     this.imageValue,
     this.heading,

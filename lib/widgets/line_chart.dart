@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class LineReportChart extends StatelessWidget {
+  final List<FlSpot> weeklyCasesCount;
+  LineReportChart({this.weeklyCasesCount});
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
@@ -27,14 +29,6 @@ class LineReportChart extends StatelessWidget {
   }
 
   List<FlSpot> getSpots() {
-    return [
-      FlSpot(0, 38310),
-      FlSpot(1, 46253),
-      FlSpot(2, 50210),
-      FlSpot(3, 47638),
-      FlSpot(4, 50356),
-      FlSpot(5, 45674),
-      FlSpot(6, 45903),
-    ];
+    return weeklyCasesCount;
   }
 }

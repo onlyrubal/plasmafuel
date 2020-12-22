@@ -1,5 +1,9 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:plasma_fuel/providers/auth.dart';
+import 'package:plasma_fuel/providers/donor_info.dart';
+import 'package:plasma_fuel/widgets/today_cases_card.dart';
 import '../widgets/donor_submission_card.dart';
 import '../providers/covid_tracker.dart';
 import 'package:provider/provider.dart';
@@ -99,6 +103,35 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _checkDidChangeDependenciesRan = true;
   bool _isLoadingSpinner = false;
 
+  List<FlSpot> _weeklyCasesConfirmed = [
+    FlSpot(0, 35551),
+    FlSpot(1, 36595),
+    FlSpot(2, 36652),
+    FlSpot(3, 36011),
+    FlSpot(4, 32981),
+    FlSpot(5, 26567),
+    FlSpot(6, 32080),
+  ];
+  List<FlSpot> _weeklyCasesDeaths = [
+    FlSpot(0, 526),
+    FlSpot(1, 540),
+    FlSpot(2, 512),
+    FlSpot(3, 482),
+    FlSpot(4, 391),
+    FlSpot(5, 385),
+    FlSpot(6, 402),
+  ];
+  List<FlSpot> _weeklyCasesRecovered = [
+    FlSpot(0, 31280),
+    FlSpot(1, 31041),
+    FlSpot(2, 32389),
+    FlSpot(3, 34890),
+    FlSpot(4, 33121),
+    FlSpot(5, 34341),
+    FlSpot(6, 36635),
+  ];
+  List<FlSpot> _weeklyCasesToday = [];
+
   @override
   void setState(fn) {
     if (mounted) {
@@ -126,6 +159,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final covidTracker = Provider.of<CovidTrackers>(context);
+    final donorInfoData = Provider.of<Donors>(context);
+    final authID = Provider.of<Auth>(context).userId;
+    final _hasSubmitted =
+        (int.tryParse(donorInfoData.mySubmissionsCount(authID)) > 0)
+            ? true
+            : false;
     return Scaffold(
       body: SafeArea(
         child: _isLoadingSpinner
@@ -176,27 +215,33 @@ class _HomeScreenState extends State<HomeScreen> {
                             effectedNum:
                                 int.tryParse(covidTracker.item.totalCases),
                             press: () {},
+                            weeklyCasesCount: _weeklyCasesConfirmed,
                           ),
                           InfoCard(
                             title: "Total Deaths",
                             iconColor: Color(0xFFFF2D55),
                             effectedNum: int.tryParse(covidTracker.item.deaths),
                             press: () {},
+                            weeklyCasesCount: _weeklyCasesDeaths,
                           ),
+                          // SizedBox(width: 80),
                           InfoCard(
                             title: "Total Recovered",
                             iconColor: Color(0xFF50E3C2),
                             effectedNum:
                                 int.tryParse(covidTracker.item.recovered),
                             press: () {},
+                            weeklyCasesCount: _weeklyCasesRecovered,
                           ),
-                          InfoCard(
+
+                          TodayCasesCard(
                             title: "Today Cases",
                             iconColor: Color(0xFF5856D6),
                             effectedNum: int.tryParse(
                               covidTracker.item.todayCases,
                             ),
                             press: () {},
+                            weeklyCasesCount: _weeklyCasesToday,
                           ),
                         ],
                       ),
@@ -238,11 +283,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                     heading:
                                         'Have a prior, verified diagnosis of COVID-19, but are now symptom free.',
                                   ),
-                                  DonorSubmissionCard(
-                                    heading: 'If you are eligible',
-                                    subHeading: 'Click here',
-                                    imageValue: 'assets/images/plasmabag.png',
-                                  )
+                                  !_hasSubmitted
+                                      ? DonorSubmissionCard(
+                                          heading: 'If you are eligible',
+                                          subHeading: 'Click here',
+                                          imageValue:
+                                              'assets/images/plasmabag.png',
+                                        )
+                                      : Text(''),
                                 ],
                               ),
                             ),
